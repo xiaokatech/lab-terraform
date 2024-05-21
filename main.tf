@@ -27,9 +27,26 @@ provider "aws" {
   secret_key = var.AWS_SECRET_KEY
 }
 
-resource "aws_instance" "my-first-server" {
-  ami           = "ami-04b70fa74e45c3917"
-  instance_type = "t2.nano"
+# resource "aws_instance" "my-first-server" {
+#   ami           = "ami-04b70fa74e45c3917"
+#   instance_type = "t2.nano"
+
+#   tags = {
+#     Name = "lab-terraform"
+#   }
+# }
+
+resource "aws_vpc" "first-vpc" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "lab-terraform"
+  }
+}
+
+resource "aws_subnet" "subnet-1" {
+  vpc_id     = aws_vpc.first-vpc.id
+  cidr_block = "10.0.1.0/24"
 
   tags = {
     Name = "lab-terraform"
