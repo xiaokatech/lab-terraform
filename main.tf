@@ -20,6 +20,6 @@ resource "aws_instance" "my-first-server" {
   instance_type = "t2.nano"
 
   tags = {
-    Name = "to-delete"
+    Name = "lab-terraform"
   }
 }
