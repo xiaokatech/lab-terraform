@@ -182,3 +182,10 @@ resource "aws_instance" "web-server-instance" {
     Name = "lab-terraform"
   }
 }
+
+output "server_private_ip" {
+  value = aws_instance.web-server-instance.id
+}
+output "server_id" {
+  value = aws_instance.web-server-instance.private_ip
+}
