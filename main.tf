@@ -38,23 +38,23 @@ variable "subnet_prefix_list" {
   default     = ["10.0.2.0/24", "10.0.3.0/24"]
   type        = list(string)
 }
+variable "tags" {
+  description = "tags for the resources"
+  type        = map(string)
+}
 
 # 1. Create a VPC
 resource "aws_vpc" "prod-vpc" {
   cidr_block = "10.0.0.0/16"
 
-  tags = {
-    Name = "lab-terraform"
-  }
+  tags = var.tags
 }
 
 # 2. Create an Internet Gateway
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.prod-vpc.id
 
-  tags = {
-    Name = "lab-terraform"
-  }
+  tags = var.tags
 }
 
 # 3. Create a Route Table
@@ -71,9 +71,7 @@ resource "aws_route_table" "prod-route-table" {
     gateway_id      = aws_internet_gateway.gw.id
   }
 
-  tags = {
-    Name = "lab-terraform"
-  }
+  tags = var.tags
 }
 
 # 4. Create a Subnet
@@ -82,9 +80,7 @@ resource "aws_subnet" "subnet-1" {
   cidr_block        = var.subnet_prefix
   availability_zone = "us-east-1a"
 
-  tags = {
-    Name = "lab-terraform"
-  }
+  tags = var.tags
 }
 
 resource "aws_subnet" "subnet-2" {
@@ -92,9 +88,7 @@ resource "aws_subnet" "subnet-2" {
   cidr_block        = var.subnet_prefix_list[1]
   availability_zone = "us-east-1a"
 
-  tags = {
-    Name = "lab-terraform"
-  }
+  tags = var.tags
 }
 
 
@@ -141,9 +135,7 @@ resource "aws_security_group" "allow_web" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name = "lab-terraform"
-  }
+  tags = var.tags
 }
 
 # 7. Create a network interface with an ip in the subnet that was created in step 4
@@ -157,9 +149,7 @@ resource "aws_network_interface" "web-server-nic" {
   #   device_index = 1
   # }
 
-  tags = {
-    Name = "lab-terraform"
-  }
+  tags = var.tags
 }
 
 # 8. Assign an elastic IP to the network interface created in step 7
@@ -169,9 +159,7 @@ resource "aws_eip" "one" {
   associate_with_private_ip = "10.0.1.50"
   depends_on                = [aws_internet_gateway.gw, aws_network_interface.web-server-nic]
 
-  tags = {
-    Name = "lab-terraform"
-  }
+  tags = var.tags
 }
 output "server_public_ip" {
   value = aws_eip.one.public_ip
@@ -198,9 +186,7 @@ resource "aws_instance" "web-server-instance" {
               sudo bash -c "echo your very first web server > /var/www/html/index.html"
               EOF
 
-  tags = {
-    Name = "lab-terraform"
-  }
+  tags = var.tags
 }
 
 output "server_private_ip" {
