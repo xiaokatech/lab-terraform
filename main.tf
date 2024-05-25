@@ -33,6 +33,11 @@ variable "subnet_prefix" {
   default     = "10.0.1.0/24"
   type        = string
 }
+variable "subnet_prefix_list" {
+  description = "cidr block for the subnet"
+  default     = ["10.0.2.0/24", "10.0.3.0/24"]
+  type        = list(string)
+}
 
 # 1. Create a VPC
 resource "aws_vpc" "prod-vpc" {
@@ -75,6 +80,16 @@ resource "aws_route_table" "prod-route-table" {
 resource "aws_subnet" "subnet-1" {
   vpc_id            = aws_vpc.prod-vpc.id
   cidr_block        = var.subnet_prefix
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "lab-terraform"
+  }
+}
+
+resource "aws_subnet" "subnet-2" {
+  vpc_id            = aws_vpc.prod-vpc.id
+  cidr_block        = var.subnet_prefix_list[1]
   availability_zone = "us-east-1a"
 
   tags = {
