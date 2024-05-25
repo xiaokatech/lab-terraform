@@ -153,6 +153,9 @@ resource "aws_eip" "one" {
     Name = "lab-terraform"
   }
 }
+output "server_public_ip" {
+  value = aws_eip.one.public_ip
+}
 
 # 9. Create a ubuntu server and install/enable apache2
 resource "aws_instance" "web-server-instance" {
