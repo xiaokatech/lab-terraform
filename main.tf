@@ -27,14 +27,7 @@ provider "aws" {
   secret_key = var.AWS_SECRET_KEY
 }
 
-# resource "aws_instance" "my-first-server" {
-#   ami           = "ami-04b70fa74e45c3917"
-#   instance_type = "t2.nano"
 
-#   tags = {
-#     Name = "lab-terraform"
-#   }
-# }
 
 # 1. Create a VPC
 resource "aws_vpc" "prod-vpc" {
@@ -64,8 +57,8 @@ resource "aws_route_table" "prod-route-table" {
   }
 
   route {
-    ipv6_cidr_block        = "::/0"
-    egress_only_gateway_id = aws_internet_gateway.gw.id
+    ipv6_cidr_block = "::/0"
+    gateway_id      = aws_internet_gateway.gw.id
   }
 
   tags = {
@@ -134,6 +127,55 @@ resource "aws_security_group" "allow_web" {
 }
 
 # 7. Create a network interface with an ip in the subnet that was created in step 4
-# 8. Assign an elastic IP to the network interface created in step 7
-# 9. Create a ubuntu server and install/enable apache2
+resource "aws_network_interface" "web-server-nic" {
+  subnet_id       = aws_subnet.subnet-1.id
+  private_ips     = ["10.0.1.50"]
+  security_groups = [aws_security_group.allow_web.id]
 
+  # attachment {
+  #   instance     = aws_instance.test.id
+  #   device_index = 1
+  # }
+
+  tags = {
+    Name = "lab-terraform"
+  }
+}
+
+# 8. Assign an elastic IP to the network interface created in step 7
+resource "aws_eip" "one" {
+  domain                    = "vpc"
+  network_interface         = aws_network_interface.web-server-nic.id
+  associate_with_private_ip = "10.0.1.50"
+  depends_on                = [aws_internet_gateway.gw]
+
+  tags = {
+    Name = "lab-terraform"
+  }
+}
+
+# 9. Create a ubuntu server and install/enable apache2
+resource "aws_instance" "web-server-instance" {
+  ami               = "ami-04b70fa74e45c3917"
+  instance_type     = "t2.nano"
+  availability_zone = "us-east-1a"
+  key_name          = "lab-terraform"
+
+  network_interface {
+    device_index         = 0
+    network_interface_id = aws_network_interface.web-server-nic.id
+  }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt update -y
+              sudo apt install apache2 -y
+              sudo systemctl enable apache2
+              sudo systemctl start apache2
+              sudo bash -c "echo your very first web server > /var/www/html/index.html"
+              EOF
+
+  tags = {
+    Name = "lab-terraform"
+  }
+}
